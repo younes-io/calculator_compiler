@@ -1,9 +1,6 @@
 /// The lexer module
 mod lexer {
-    use std::{
-        borrow::Borrow,
-        cell::{Cell, RefCell},
-    };
+    use std::cell::{Cell, RefCell};
 
     enum TokenType {
         INT(usize), // an integer
@@ -53,6 +50,7 @@ mod lexer {
         fn produce_token(&self, start: usize, end: usize) {
             let mut tokens = self.tokens.borrow_mut();
             tokens.push(&self.source[start..end]);
+            self.current_position.set(end);
         }
 
         fn get_char_at(&self, position: usize) -> Option<char> {
@@ -86,15 +84,12 @@ mod lexer {
                             self.current_position.get(),
                             self.current_position.get() + 1,
                         );
-                        self.current_position.set(self.current_position.get() + 1);
                     }
 
                     TokenType::INT(_) => {
-                        let start_position = self.current_position.get();
-                        let offset_end_number = self.scan_number(start_position);
-                        self.current_position
-                            .set(self.current_position.get() + offset_end_number);
-                        self.produce_token(start_position, self.current_position.get());
+                        let offset_end_number = self.scan_number(self.current_position.get());
+                        let end_position = self.current_position.get() + offset_end_number;
+                        self.produce_token(self.current_position.get(), end_position);
                     }
 
                     TokenType::WS => {
@@ -118,8 +113,8 @@ mod tests {
     fn tokenize() {
         let source_input = "1500+89 / 6 -9*45  ";
         let scanner = Scanner::new(source_input);
-        let expected_tokens = scanner.tokenize();
+        let result_tokens = scanner.tokenize();
         let expected_result = vec!["1500", "+", "89", "/", "6", "-", "9", "*", "45"];
-        assert_eq!(expected_tokens, expected_result);
+        assert_eq!(result_tokens, expected_result);
     }
 }

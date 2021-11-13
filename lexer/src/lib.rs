@@ -1,6 +1,9 @@
 /// The lexer module
 mod lexer {
-    use std::cell::{Cell, RefCell};
+    use std::{
+        borrow::Borrow,
+        cell::{Cell, RefCell},
+    };
 
     enum TokenType {
         INT(usize), // an integer
@@ -16,7 +19,7 @@ mod lexer {
     pub struct Scanner<'a> {
         current_position: Cell<usize>,
         source: &'a str,
-        pub tokens: RefCell<Vec<&'a str>>,
+        tokens: RefCell<Vec<&'a str>>,
     }
 
     impl<'a> Scanner<'a> {
@@ -69,7 +72,7 @@ mod lexer {
             offset
         }
 
-        pub fn tokenize(&self) -> () {
+        pub fn tokenize(&self) -> Vec<&str> {
             while !self.is_eof() {
                 let symbol = self.get_char_at(self.current_position.get());
 
@@ -101,6 +104,7 @@ mod lexer {
                     TokenType::EOF => {}
                 }
             }
+            self.tokens.borrow().to_vec()
         }
     }
 }
@@ -114,8 +118,8 @@ mod tests {
     fn tokenize() {
         let source_input = "1500+89 / 6 -9*45  ";
         let scanner = Scanner::new(source_input);
-        scanner.tokenize();
+        let expected_tokens = scanner.tokenize();
         let expected_result = vec!["1500", "+", "89", "/", "6", "-", "9", "*", "45"];
-        assert_eq!(scanner.tokens.into_inner(), expected_result);
+        assert_eq!(expected_tokens, expected_result);
     }
 }

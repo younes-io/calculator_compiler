@@ -8,8 +8,8 @@ mod lexer {
         MIN,        // the subtraction symbol : '-'
         MULT,       // the multiplication symbol : '*'
         DIV,        // the division symbol : '-'
-        UNKNOWN,    // or, something else
         WS,         // Whitespace
+        UNKNOWN,    // An invalid token (e.g. '~')
         EOF,        // End Of File
     }
 
@@ -47,8 +47,8 @@ mod lexer {
             }
         }
 
-        fn produce_token(&mut self, start: usize, end: usize) {
-            let tokens = self.tokens.get_mut();
+        fn produce_token(&self, start: usize, end: usize) {
+            let mut tokens = self.tokens.borrow_mut();
             tokens.push(&self.source[start..end]);
         }
 
@@ -69,7 +69,7 @@ mod lexer {
             offset
         }
 
-        pub fn tokenize(&mut self) -> () {
+        pub fn tokenize(&self) -> () {
             while !self.is_eof() {
                 let symbol = self.get_char_at(self.current_position.get());
 
@@ -83,18 +83,19 @@ mod lexer {
                             self.current_position.get(),
                             self.current_position.get() + 1,
                         );
-                        *self.current_position.get_mut() += 1;
+                        self.current_position.set(self.current_position.get() + 1);
                     }
 
                     TokenType::INT(_) => {
                         let start_position = self.current_position.get();
                         let offset_end_number = self.scan_number(start_position);
-                        *self.current_position.get_mut() += offset_end_number;
+                        self.current_position
+                            .set(self.current_position.get() + offset_end_number);
                         self.produce_token(start_position, self.current_position.get());
                     }
 
                     TokenType::WS => {
-                        *self.current_position.get_mut() += 1;
+                        self.current_position.set(self.current_position.get() + 1);
                     }
 
                     TokenType::EOF => {}
@@ -112,9 +113,9 @@ mod tests {
     #[test]
     fn tokenize() {
         let source_input = "  1500+89 / 6 -9*45  ";
-        let mut scanner = Scanner::new(source_input);
+        let scanner = Scanner::new(source_input);
         scanner.tokenize();
-        let expected_result = vec!["1500", "+", "89", "/", "6", "-", "9", "*", "45"];
+        let expected_result = vec!["1500", "+", "89", "/", "6", "-", "9", "*", "450"];
         assert_eq!(scanner.tokens.into_inner(), expected_result);
     }
 }

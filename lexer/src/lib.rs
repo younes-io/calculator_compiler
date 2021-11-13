@@ -112,10 +112,10 @@ mod tests {
 
     #[test]
     fn tokenize() {
-        let source_input = "  1500+89 / 6 -9*45  ";
+        let source_input = "1500+89 / 6 -9*45  ";
         let scanner = Scanner::new(source_input);
         scanner.tokenize();
-        let expected_result = vec!["1500", "+", "89", "/", "6", "-", "9", "*", "450"];
+        let expected_result = vec!["1500", "+", "89", "/", "6", "-", "9", "*", "45"];
         assert_eq!(scanner.tokens.into_inner(), expected_result);
     }
 }

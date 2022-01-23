@@ -2,7 +2,7 @@
 mod lexer {
     use std::cell::{Cell, RefCell};
 
-    enum TokenType {
+    pub enum TokenType {
         INT(usize), // an integer
         ADD,        // the addition symbol : '+'
         MIN,        // the subtraction symbol : '-'
@@ -17,6 +17,7 @@ mod lexer {
         current_position: Cell<usize>,
         source: &'a str,
         tokens: RefCell<Vec<&'a str>>,
+        pub token_types: RefCell<Vec<TokenType>>,
     }
 
     impl<'a> Scanner<'a> {
@@ -25,6 +26,7 @@ mod lexer {
                 current_position: Cell::new(0),
                 source: input,
                 tokens: RefCell::new(Vec::<&'a str>::new()),
+                token_types: RefCell::new(Vec::<TokenType>::new()),
             }
         }
 
@@ -50,6 +52,8 @@ mod lexer {
         fn produce_token(&self, start: usize, end: usize) {
             let mut tokens = self.tokens.borrow_mut();
             tokens.push(&self.source[start..end]);
+            let mut token_types = self.token_types.borrow_mut();
+            token_types.push(Scanner::recognize(self.get_char_at(start)));
             self.current_position.set(end);
         }
 
